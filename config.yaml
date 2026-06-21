@@ -1,0 +1,18 @@
+system:
+  csv_path: "smart_traffic_management_dataset.csv"
+  num_roads: 4
+  max_capacity: 50
+  seed: 42
+
+hyperparameters:
+  learning_rate: 0.0003
+  n_steps: 2048
+  batch_size: 64
+  n_epochs: 10
+  gamma: 0.99
+  total_timesteps: 40000
+
+paths:
+  model_output_dir: "./saved_models/"
+  tensorboard_log_dir: "./itms_tensorboard_metrics/"
+  analytics_output: "kaggle_traffic_performance.png"
