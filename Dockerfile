@@ -17,4 +17,4 @@ RUN pip install --no-cache-dir --upgrade pip && \
     pip install --no-cache-dir gymnasium stable-baselines3 torch matplotlib networkx pytest pandas
 
 # Instruct the runtime interface to automatically test system dependencies on initialization
-CMD ["pytest", "test_pipeline.py"]
+CMD ["pytest", "test_pipeline.py"]x
