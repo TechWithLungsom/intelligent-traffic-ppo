@@ -15,14 +15,11 @@ class ITMSKaggleJunctionEnv(gym.Env):
     def __init__(self, csv_path="smart_traffic_management_dataset.csv", num_roads=4, max_capacity=50):
         super(ITMSKaggleJunctionEnv, self).__init__()
         
-        # Explicitly assign class parameters to resolve the initialization Attribute Error
         self.num_roads = num_roads
         self.max_capacity = max_capacity
         
-        # Action Space: Switch Green Light phase [0: NORTH, 1: SOUTH, 2: EAST, 3: WEST]
         self.action_space = spaces.Discrete(self.num_roads)
         
-        # Observation Space: 8D unified matrix structure
         low_bound = np.zeros(self.num_roads * 2, dtype=np.float32)
         high_bound = np.concatenate([
             np.full(self.num_roads, self.max_capacity, dtype=np.float32),
@@ -31,14 +28,12 @@ class ITMSKaggleJunctionEnv(gym.Env):
         self.observation_space = spaces.Box(low=low_bound, high=high_bound, dtype=np.float32)
         self.network_graph = nx.star_graph(self.num_roads)
         
-        # Load Kaggle historical time-series logs
         self.df = pd.read_csv(csv_path)
         self.location_data = {}
         for i in range(1, self.num_roads + 1):
             loc_df = self.df[self.df['location_id'] == i].reset_index(drop=True)
             self.location_data[i - 1] = loc_df
             
-        # PATENT SYSTEM REGISTRY: Continuously tracks consecutive steps a lane sits at peak overflow
         self.starvation_tracker = np.zeros(self.num_roads, dtype=np.float32)
         
         self.reset()
@@ -47,10 +42,8 @@ class ITMSKaggleJunctionEnv(gym.Env):
         super().reset(seed=seed)
         self.current_step = 0
         
-        # Reset our custom starvation matrix mapping tracking indicators every epoch
         self.starvation_tracker = np.zeros(self.num_roads, dtype=np.float32)
         
-        # Sample non-deterministic start index arrays safely to break loop tracking heuristics
         max_start = min(len(self.location_data[i]) for i in range(self.num_roads)) - 205
         self.data_idx = np.random.randint(0, max_start) if max_start > 0 else 0
         
@@ -73,45 +66,38 @@ class ITMSKaggleJunctionEnv(gym.Env):
         self.current_step += 1
         self.data_idx += 1
         
-        # 1. Stochastic Vehicle Inflow Phase mapped to Kaggle Volume Rows
         inflow = np.zeros(self.num_roads, dtype=np.float32)
         for i in range(self.num_roads):
             volume = self.location_data[i].loc[self.data_idx, 'traffic_volume']
             inflow[i] = volume / 180.0
         self.incoming_queues = np.minimum(self.incoming_queues + inflow, self.max_capacity)
         
-        # 2. Process Chosen Green Signal State Transition Mechanics
         clearing_rate = 8.0
         green_lane = action
         actual_discharge = min(self.incoming_queues[green_lane], clearing_rate, self.outgoing_capacities[green_lane])
         self.incoming_queues[green_lane] -= actual_discharge
         
-        # RECURSIVE STARVATION LOGIC: Check for non-cleared lanes lingering at peak threshold limits
         for i in range(self.num_roads):
             if self.incoming_queues[i] >= (self.max_capacity - 1) and i != green_lane:
                 self.starvation_tracker[i] += 1
             else:
                 self.starvation_tracker[i] = max(0.0, self.starvation_tracker[i] - 1)
         
-        # 3. Dynamic Calculation of Exit Capacity Boundaries (With Accident Throttling)
         for i in range(self.num_roads):
             speed = self.location_data[i].loc[self.data_idx, 'avg_vehicle_speed']
             accident = self.location_data[i].loc[self.data_idx, 'accident_reported']
             
             base_cap = np.floor(speed / 2.0) + 15
             if accident == 1:
-                base_cap *= 0.25  # Force severe 75% flow disruption constraints on obstructions
+                base_cap *= 0.25 
                 
             self.outgoing_capacities[i] = max(4.0, base_cap)
         
-        # 4. PATENTED REWARD ENGINE: Dynamic Constraint-Bounded Fairness (DCBF)
         total_pressure = np.sum(self.incoming_queues) - np.sum(self.outgoing_capacities)
         base_reward = -float(total_pressure)
         
-        # Apply exponential cost growth factor against consecutive starvation steps
         starvation_penalty = float(np.sum(5.0 * (self.starvation_tracker ** 1.5)))
         
-        # Composite reward targeting optimization and safety balance simultaneously
         reward = base_reward - starvation_penalty
         
         terminated = self.current_step >= 200

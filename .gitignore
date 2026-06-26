@@ -6,3 +6,5 @@ itms_tensorboard_metrics/
 saved_models/
 .DS_Store
 *.png
+test_maps_api.py
+config.yaml
