@@ -5,35 +5,31 @@
 [![RL Engine: Stable--Baselines3](https://img.shields.io/badge/Engine-Stable--Baselines3-orange.svg)](https://stable-baselines3.readthedocs.io/)
 [![Deployment: Docker](https://img.shields.io/badge/Deployment-Docker-blue.svg)](https://www.docker.com/)
 
-An enterprise-grade, high-throughput Intelligent Traffic Management System (ITMS) that models urban corridor intersections as a highly non-linear, spatial-temporal graph topology $G=(V,E)$. 
+An enterprise-grade, high-throughput Intelligent Traffic Management System (ITMS) that models urban corridor intersections as a highly non-linear, spatial-temporal graph topology. 
 
-Standard Deep Reinforcement Learning (DRL) approaches focus greedily on global throughput minimization, which mathematically introduces **approach starvation** under downstream capacity structural breaks (e.g., traffic incidents). This project implements a novel **Dynamic Constraint-Bounded Fairness (DCBF)** framework wrapped around a Proximal Policy Optimization (PPO) core agent to enforce non-linear starvation penalties while maintaining Pareto-optimal global pressure balance.
+Standard Deep Reinforcement Learning (DRL) approaches focus greedily on global throughput minimization, which mathematically introduces **approach starvation** under downstream capacity structural breaks (e.g., traffic incidents). This project implements a novel **Dynamic Constraint-Bounded Fairness (DCBF)** framework wrapped around a Proximal Policy Optimization (PPO) core agent to enforce non-linear starvation penalties while maintaining a Pareto-optimal global pressure balance.
 
 ---
 
 ## 🚀 Architectural & System Engineering Core Metrics
 * **Vectorized Acceleration:** Optimized state tensor logic to execute at **2,280+ FPS** natively on Apple Silicon CPU thread pools, introducing a 1,700%+ performance increase over standard unvectorized looping environments.
-* **Fault-Tolerant Live Data Streaming:** Engineered an asynchronous-ready ingestion middleware wrapping the **Google Maps Directions API**. The pipeline computes real-time routing delays (`duration_in_traffic` variances) at high-density junctions (Narengi Tinali, Guwahati) and maps them natively into continuous state spaces.
+* **Fault-Tolerant Live Data Streaming:** Engineered an asynchronous-ready ingestion middleware wrapping the **Google Maps Directions API**. The pipeline computes real-time routing delays (duration_in_traffic variances) at high-density junctions (Narengi Tinali, Guwahati) and maps them natively into continuous state spaces.
 * **Resilient Graceful Degradation:** Features a built-in safety telemetry exception handler that switches immediately to static/stochastic fallback distributions in the event of API connection dropouts, rate-limiting, or token exhaustion—preventing MDP environment crashes.
 * **Production Isolation:** Maintained rigorous environment stability through multi-arch **Docker** container configurations and a continuous automated **PyTest** pipeline testing matrix boundary invariants.
 
 ---
 
-## 🧮 Mathematical Formulation & Objective Topology
+## ⚙️ Core Optimization Architecture (Multi-Objective Reward Engine)
 
-Instead of simple, reactive rule-based timer thresholds, the intersection control maps actions to a composite multi-objective reward engine:
+Instead of relying on simple, reactive rule-based timer thresholds, the intersection control engine maps actions to a composite multi-objective reward formulation that balances global throughput with localized fairness.
 
-$$\text{Reward}_{\text{Total}}(t) = R_{\text{Base}}(t) - P_{\text{Starvation}}(t)$$
+### 1. Global Pressure Minimization
+To preserve macro-level network equilibrium across interconnected node vertices, the agent dynamically tracks the delta between localized incoming queue densities and outgoing exit link clearance profiles. By penalizing net accumulation, the policy network learns to maximize vehicle discharge velocity across open channels.
 
-### 1. Global Pressure Minimization ($R_{\text{Base}}$)
-To preserve macro-level network equilibrium across interconnected node vertices, the agent tracks localized queue vectors against exit link clearance profiles:
-$$R_{\text{Base}}(t) = - \left( \sum_{i \in \text{Lanes}_{\text{in}}} Q_i(t) - \sum_{j \in \text{Lanes}_{\text{out}}} C_j(t) \right)$$
+### 2. Dynamic Constraint-Bounded Fairness (DCBF)
+To prevent infinite queue accumulation on throttled or structurally bottlenecked approach links, the simulator runs an internal state matrix tracking vector. If an individual lane lingers at peak capacity while being denied a clearance interval by the active signal phase, its counter increments consecutively. This triggers an exponentially scaling penalty that rapidly dominates the optimization landscape, compelling the model to execute an emergency safety release phase.
 
-### 2. Dynamic Constraint-Bounded Fairness ($P_{\text{Starvation}}$)
-To prevent infinite queue accumulation on throttled approach links, an environment-level matrix tracking vector $T_i$ increments consecutively if a lane lingers at capacity while being denied a clearance interval. The safety net cost function scales exponentially:
-$$P_{\text{Starvation}}(t) = \sum_{i \in \text{Lanes}_{\text{in}}} \alpha \cdot \left(T_i(t)\right)^\beta$$
-
-*🔒 **Hyperparameter Constants Locked for System Convergence:** $\alpha = 5.0$, $\beta = 1.5$. As starvation intervals expand, the penalty curve rapidly dominates the global optimization objective, compelling the policy network to smoothly execute an optimal safety release phase.*
+*🔒 **System Convergence Stability:** The safety net uses fixed exponential tuning constants (alpha = 5.0, beta = 1.5) to guarantee clean policy updates and robust reward structures during multi-hour deployment rollouts.*
 
 ---
 
