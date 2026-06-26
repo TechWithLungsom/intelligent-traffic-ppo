@@ -16,3 +16,21 @@ paths:
   model_output_dir: "./saved_models/"
   tensorboard_log_dir: "./itms_tensorboard_metrics/"
   analytics_output: "kaggle_traffic_performance.png"
+
+
+google_maps_api:
+  api_key: "AIzaSyD1rHeY2CxY4C_zglC62cZEMkaOW_E44H8"
+  # Define coordinates for the start and end of each lane approach (approx. 500m segments)
+  junction_coordinates:
+    lane_0_north:
+      origin: "26.1755,91.8015"
+      destination: "26.1711,91.8014"
+    lane_1_south:
+      origin: "26.1667,91.8013"
+      destination: "26.1711,91.8014"
+    lane_2_east:
+      origin: "26.1712,91.8065"
+      destination: "26.1711,91.8014"
+    lane_3_west:
+      origin: "26.1710,91.7960"
+      destination: "26.1711,91.8014"
