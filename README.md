@@ -50,7 +50,7 @@ To prevent infinite queue accumulation on throttled or structurally bottlenecked
 ## 📷 Output
 
 ### Output Verification A: Kaggle Historical Replay Validation
-![Kaggle Historical Replay Run](img1.png)
+![Kaggle Historical Replay Run](https://github.com/TechWithLungsom/intelligent-traffic-ppo/blob/main/img1.jpg)
 
 ### Output Verification B: Real-Time Google Maps API Streaming Feed
-![Live Google Maps API Feed Run](img2.png)
+![Live Google Maps API Feed Run](https://github.com/TechWithLungsom/intelligent-traffic-ppo/blob/main/img2.jpg)
