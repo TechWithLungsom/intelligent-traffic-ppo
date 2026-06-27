@@ -47,6 +47,10 @@ To prevent infinite queue accumulation on throttled or structurally bottlenecked
 └── test_pipeline.py        # Pytest suite ensuring system matrix state integrity
 ```
 
-## 📂 Output
-screenshot 1 []
-screenshot 2 []
+## 📷 Output
+
+### Output Verification A: Kaggle Historical Replay Validation
+![Kaggle Historical Replay Run](img1.png)
+
+### Output Verification B: Real-Time Google Maps API Streaming Feed
+![Live Google Maps API Feed Run](img2.png)
